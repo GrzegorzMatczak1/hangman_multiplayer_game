@@ -14,8 +14,9 @@ Tables in db:
 ```
 - Words (id, word, size)
 - User (id, username, password{hashed}, lifes, guesses{string list}, timeteaken{seconds}, finished{bool}, foundword{bool})
-- Round (id, host {int / foreign key user}, users {int list / max 10 / foreign key user}, chosenword {int foreign key words}, wordsize, active {bool}, started{bool}, finished{bool})
-- Results (id, roundid {foreign key round}, users {int list / max 10 / foreign key user / guessing for finished == false / sort by lifes, timeteaken})
+- Round (id, host {int / foreign key user}, chosenword {int foreign key words}, wordsize, active {bool}, started{bool}, finished{bool})
+- Lobby (id, roundid, userid)
+- Results (id, roundid {foreign key round})
 ```
 
 
