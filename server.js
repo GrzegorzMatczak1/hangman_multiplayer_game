@@ -1,16 +1,19 @@
-const express = require('express');
-const { Pool } = require('pg');
-const cors = require('cors');
+import express, { json } from 'express';
+import { Pool } from 'pg';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+dotenv.config();
 const app = express();
 
 
-app.use(express.json());
+app.use(json());
 app.use(cors());
 const pool = new Pool({ 
     user: 'postgres', // Default username is usually 'postgres' or your macOS
     host: 'localhost',
     database: 'postgres', // Make sure to create this database in Postgres
-    password: process.env.POSTGRE_PASSWORD, // Enter your postgres password here
+    password: process.env.VITE_POSTGRE_PASSWORD, // Enter your postgres password here
     port: 5432,
 });
 pool.connect()

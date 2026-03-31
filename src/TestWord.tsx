@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react"
-import { useLocation } from "react-router-dom"
+import { useState } from "react"
 
 
 interface Word {
@@ -9,29 +8,31 @@ interface Word {
 
 
 function TestWord() {
-    const location = useLocation()
     const [word, setWord] = useState<Word>({word: "", size: 0})
+    const [text, setText] = useState<string>("")
     
     const handleSubmit = async () => {
-        const temp_size = word.word.length
-        setWord({...word, size: temp_size})
+        const temp_size = text.length
+        const payload = { word: text, size: temp_size }
+        setWord(payload)
         await fetch('http://localhost:3000/test', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(word)
+            body: JSON.stringify(payload)
         }) .then(response => { 
                 if (response.ok) {
                     console.log('Question submitted successfully!')
                     setWord({word: "", size: 0})
+                    setText("")
                 }
             })
 }
 
     return (
         <>
-            <input type="text" value={word.word} onChange={(e) => setWord({...word, word: e.target.value})} />
+            <input type="text" value={text} onChange={(e) => setText(e.target.value)} />
             <button onClick={handleSubmit}>Submit</button>
         </>
     )
