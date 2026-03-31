@@ -13,9 +13,9 @@ Technologies:
 Tables in db:
 ```
 - Words (id, word, size)
-- User (id, username, password{hashed}, lifes, guesses{string list}, timeteaken{seconds}, finished{bool}, foundword{bool})
+- User (id, username, password{hashed}, lives, guesses{string list}, timeteaken{seconds}, finished{bool}, foundword{bool})
 - Round (id, host {int / foreign key user}, chosenword {int foreign key words}, wordsize, active {bool}, started{bool}, finished{bool})
-- Lobby (id, roundid, userid)
+- Lobby (id, roundid, userid, lives )
 - Results (id, roundid {foreign key round})
 ```
 
