@@ -15,8 +15,7 @@ Tables in db:
 - Words (id, word, size)
 - User (id, username, password{hashed}, lives, guesses{string list}, timeteaken{seconds}, finished{bool}, foundword{bool})
 - Round (id, host {int / foreign key user}, chosenword {int foreign key words}, wordsize, active {bool}, started{bool}, finished{bool})
-- Roundinfo (id, roundid, userid, livesleft, time)
-- Results (id, roundid {foreign key round})
+- Roundinfo (id, roundid {foreign key round}, userid{foreign key user}, livesleft, time)
 ```
 
 
