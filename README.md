@@ -1,5 +1,5 @@
 # hangman_multiplayer_game
-When the round start the word is generated automatically. Each player on them own guesses the generated word. The player who guessed in the shortest amount of time wins.
+When the round start the word is generated automatically. Each player on them own guesses the generated word. The player who guessed in the shortest amount of guesses wins.
 
 Technologies: 
 ```
