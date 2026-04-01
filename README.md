@@ -1,6 +1,16 @@
 # hangman_multiplayer_game
 When the round start the word is generated automatically. Each player on them own guesses the generated word. The player who guessed in the shortest amount of guesses wins.
 
+Run project:
+terminal 1:
+```
+npm run dev
+```
+
+```
+node server.js
+```
+
 Technologies: 
 ```
 - React(Typescript)
