@@ -98,6 +98,28 @@ function Round() {
         }
     }, [roundId]);
 
+    const handleLeaveLobby = async () => {
+    if (!round || !user) return;
+
+    try {
+        // if host leaves before start -> cancel round
+        if (user.userId === round.host && !round.started) {
+            await fetch('http://localhost:3000/round/cancel', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')!}`
+                },
+                body: JSON.stringify({ roundId })
+            });
+        }
+
+        navigate('/');
+    } catch (error) {
+        console.error('Error leaving lobby:', error);
+    }
+    };
+
     const loadRound = async (tokenUserId?: number) => {
         try {
             const effectiveUserId = tokenUserId ?? currentUserId ?? user?.userId;
@@ -122,11 +144,7 @@ function Round() {
                     roundData.started = true;
                     roundData.finished = true;
                 }
-                if (!roundData.active && effectiveUserId !== roundData.host) {
-                    alert('Host left the game. Returning to lobby.');
-                    navigate('/');
-                    return;
-                }
+                
 
                 setRound(roundData);
                 setServerPlayers(playersData);
@@ -138,9 +156,9 @@ function Round() {
                     setCurrentPlayer(userPlayer);
                 }
 
-                const isSpectator = !userPlayer && roundData.started;
-                const allFinished = areAllPlayersFinished(mergedPlayers);
-                if (roundData.finished || isSpectator || allFinished) {
+                //const isSpectator = !userPlayer && roundData.started;
+                //const allFinished = areAllPlayersFinished(mergedPlayers);
+                if (!roundData.active) {
                     navigate(`/results/${roundId}`);
                     return;
                 }
@@ -550,6 +568,9 @@ function Round() {
                                     max="10"
                                     style={{ width: '120px', marginRight: '10px' }}
                                 />
+                                {!round.started && (
+                                    <button onClick={handleLeaveLobby}>Leave Lobby</button>
+                                )}
                                 <button onClick={handleAddBots}>Add Bots</button>
                                 {botPlayers.length > 0 && (
                                     <p style={{ marginTop: '10px' }}>{botPlayers.length} bot(s) added to this round.</p>

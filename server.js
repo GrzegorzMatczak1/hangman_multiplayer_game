@@ -774,6 +774,39 @@ app.get("/round/:id/players", async (req, res) => {
     }
 });
 
+app.post("/round/cancel", async (req, res) => {
+    const verified = verifyToken(req);
+    if (!verified) {
+        return res.status(401).send('Unauthorized');
+    }
+
+    const { roundId } = req.body;
+
+    try {
+        // set all users to DNF with 10 lives
+        await pool.query(`
+            UPDATE "user"
+            SET lives = 10,
+                finished = true,
+                timeteaken = INTERVAL '-1 seconds'
+            WHERE id IN (
+                SELECT userid FROM roundinfo WHERE roundid = $1
+            )
+        `, [roundId]);
+
+        await pool.query(`
+            UPDATE round 
+            SET active = false, finished = true 
+            WHERE id = $1
+        `, [roundId]);
+
+        res.sendStatus(200);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error cancelling round');
+    }
+});
+
 app.post("/words/loadfromjson", async (req, res) => {
     const verified = verifyToken(req);
     if (!verified || !verified.admin) {
