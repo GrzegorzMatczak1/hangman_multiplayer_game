@@ -1,6 +1,4 @@
-// WordConfig menu for the hangman game
-// When this component is accesed it check if the jtw token has the admin privilege. If the user has admin privileges display input and submit button for adding words to the database, under that there is a list of all words with an x button that deletes the word and updates the list. When delete button is pressed it will prompt for confirmation. Before adding a new word check if it exists in the databse. If the user does not have admin privileges it will display a header saying that you shouldnt be here with a button showing go back. Under that is an input field and a submit button. If the imput is right it modifies the jtw token value admin to true and reloades the page. If the input is wrong it redirects the user to the home page.
-
+// Add an option to load words from a json file. This option is only available for admins. The json file is named words.json and is located in the public folder. The json file should have the following format: [{"word": "example"}, {"word": "test"}]. When the admin clicks on the load words button, it will send a request to the backend to add all the words from the json file to the database. If there are any errors, it will display an error message. If the words are added successfully, it will display a success message and update the list of words. Create a file in the same direcotry as words.json named spiffing_bots.json with 20 bot names.
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -16,6 +14,8 @@ function WordConfig() {
     const [newWord, setNewWord] = useState('');
     const [secret, setSecret] = useState('');
     const [error, setError] = useState('');
+    const [botCount, setBotCount] = useState(10);
+    const [botMessage, setBotMessage] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -102,6 +102,63 @@ function WordConfig() {
         }
     };
 
+    const handleLoadWords = async () => {
+        setError('');
+        const token = localStorage.getItem('token')!;
+        try {
+            // Fetch words from JSON file
+            const response = await fetch('/words.json');
+            if (!response.ok) {
+                throw new Error('Failed to load words.json');
+            }
+            const words = await response.json();
+            
+            // Send to backend
+            const res = await fetch('http://localhost:3000/words/loadfromjson', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ words })
+            });
+            
+            if (res.ok) {
+                const result = await res.json();
+                alert(result.message);
+                fetchWords(); // Refresh the list
+            } else {
+                setError(await res.text());
+            }
+        } catch (err) {
+            setError('Network error or failed to load JSON file');
+        }
+    };
+
+    const handleCreateBots = async () => {
+        setError('');
+        setBotMessage('');
+        const token = localStorage.getItem('token')!;
+        try {
+            const res = await fetch('http://localhost:3000/bots/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ count: botCount })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setBotMessage(`Created ${data.count} bot user${data.count === 1 ? '' : 's'}.`);
+            } else {
+                setError(await res.text());
+            }
+        } catch (err) {
+            setError('Network error while creating bot users');
+        }
+    };
+
     const handlePromote = async () => {
         setError('');
         const token = localStorage.getItem('token')!;
@@ -145,6 +202,27 @@ function WordConfig() {
                         placeholder="Enter new word"
                     />
                     <button onClick={handleAddWord}>Add Word</button>
+                </div>
+                <div style={{ marginTop: 20 }}>
+                    <button onClick={handleLoadWords}>Load Words from JSON</button>
+                </div>
+                <div style={{ marginTop: 12 }}>
+                    <button onClick={() => navigate('/')}>Back to Lobby</button>
+                </div>
+                <div style={{ marginTop: 20, padding: 16, border: '1px solid #ddd', borderRadius: 10, backgroundColor: '#fafafa' }}>
+                    <h3>Create Bot Accounts</h3>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                        <input
+                            type="number"
+                            value={botCount}
+                            min={1}
+                            max={50}
+                            onChange={(e) => setBotCount(parseInt(e.target.value) || 1)}
+                            style={{ width: 100, padding: 8, borderRadius: 6, border: '1px solid #ccc' }}
+                        />
+                        <button onClick={handleCreateBots}>Create Bot Users</button>
+                    </div>
+                    {botMessage && <p style={{ marginTop: 10, color: 'green' }}>{botMessage}</p>}
                 </div>
                 {error && <p style={{ color: 'red' }}>{error}</p>}
                 <ul>
