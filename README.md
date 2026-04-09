@@ -17,6 +17,8 @@ Technologies:
 - PostgreSQL
 - Bootstrap
 - react-router-dom
+- jsonwebtoken
+- bcrypt
 ```
 
 
