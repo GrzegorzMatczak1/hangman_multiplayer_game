@@ -38,4 +38,5 @@ Endpoints for API:
 - /round/:id/results
 - /login
 - /register
+- /wordconfig
 ```
