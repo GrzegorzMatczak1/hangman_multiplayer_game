@@ -101,14 +101,7 @@ function Results() {
                     roundData.started = true;
                     roundData.finished = true;
                 }
-                if (wasInactive && effectiveUserId !== roundData.host) {
-                    if (!hostLeftNotified) {
-                        alert('Host left the game. Returning to lobby.');
-                        setHostLeftNotified(true);
-                    }
-                    navigate('/');
-                    return;
-                }
+               
 
                 setRound(roundData);
 
@@ -116,8 +109,13 @@ function Results() {
                 setStoredBots(storedBots);
 
                 const allParticipants = [...playersData, ...storedBots].map((p: Player) => {
-                    if (roundData.finished && !p.finished) {
-                        return { ...p, finished: true, time: p.time || -1 };
+                    if (!roundData.active && !p.finished) {
+                        return { 
+                            ...p, 
+                            finished: true, 
+                            time: -1,
+                            lives: 10
+                        };
                     }
                     return p;
                 });
@@ -342,13 +340,7 @@ function Results() {
     };
 
     const handleLeaveRoom = async () => {
-        if (!round) return;
-
-        if (user?.userId === round.host) {
-            await handleEndRoom();
-        } else {
-            navigate('/');
-        }
+        navigate('/');
     };
 
     if (!user || !round) return <div>Loading...</div>;
@@ -419,14 +411,18 @@ function Results() {
                                     </>
                                 )}
                                 {!round.finished && (
-                                    <button onClick={handleEndRound} style={{ width: '100%', padding: '12px 16px' }}>
+                                    <button 
+                                        onClick={handleEndRound} 
+                                        style={{ width: '100%', padding: '12px 16px' }}
+                                        disabled={!round.active}
+                                    >
                                         End Round
                                     </button>
                                 )}
                                 <button
                                     onClick={handleStartNewRound}
                                     style={{ width: '100%', padding: '12px 16px' }}
-                                    disabled={!round.finished}
+                                    disabled={!round.active}
                                 >
                                     Start New Round
                                 </button>
