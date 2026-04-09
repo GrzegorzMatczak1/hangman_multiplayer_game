@@ -31,6 +31,10 @@ function Login() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        if (username.trim().startsWith('BOT_')) {
+            setError('Bot accounts cannot log in.');
+            return;
+        }
         try {
             const res = await fetch('http://localhost:3000/user/generateToken', {
                 method: 'POST',

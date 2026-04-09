@@ -32,6 +32,10 @@ function Register() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        if (username.trim().startsWith('BOT_')) {
+            setError('Cannot register usernames reserved for bots.');
+            return;
+        }
         if (password !== confirmPassword) {
             setError('Passwords do not match');
             return;
