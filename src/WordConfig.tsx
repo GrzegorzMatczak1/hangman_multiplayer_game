@@ -1,4 +1,3 @@
-// Add an option to load words from a json file. This option is only available for admins. The json file is named words.json and is located in the public folder. The json file should have the following format: [{"word": "example"}, {"word": "test"}]. When the admin clicks on the load words button, it will send a request to the backend to add all the words from the json file to the database. If there are any errors, it will display an error message. If the words are added successfully, it will display a success message and update the list of words. Create a file in the same direcotry as words.json named spiffing_bots.json with 20 bot names.
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 

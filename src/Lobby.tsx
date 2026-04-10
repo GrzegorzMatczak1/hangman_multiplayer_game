@@ -1,6 +1,3 @@
-// Update round list every 2 minutes. When user click on a round it will navigate to the game page with the round id as a url parameter.
-// When user creates a room it will send a request to the backend to create a new round and then navigate to the game page with the new round id as a url parameter. User that creates the room is the host of the room. When a user joins a room it will send a request to the backend to join the round and then navigate to the game page with the round id as a url parameter. If a user tries to join a room that is already started it will redirect them to the results page of thet round.
-// Once the round is finished it will be added to the previous round list. Previous rounds button can be accesed next to the create room button and will switch to Current rounds when clicked. When the user clicks the previous round button the list that displays current rounds will be replaced by the list of previous rounds and vice versa. When previous rounds button is clicked the background color changes, and changes back when current rounds button is clicked. When user clicks on a previous round it will navigate to the results page of that round. 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
