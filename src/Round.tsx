@@ -514,123 +514,130 @@ function Round() {
         return word.split('').map((letter, i) => {
             const guessed = player.foundword || allLettersGuessed || player.guesses.includes(letter);
             return (
-                <span
-                    key={i}
-                    style={{
-                        display: 'inline-block',
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '50%',
-                        border: '1.5px solid black',
-                        backgroundColor: guessed ? 'green' : 'white',
-                        margin: '1px',
-                        textAlign: 'center',
-                        lineHeight: '14px',
-                        fontSize: '10px',
-                        color: guessed ? 'white' : 'black'
-                    }}
-                />
+                <span key={i} className={`dot ${guessed ? 'filled' : ''}`} />
             );
         });
     };
 
-    if (!user || !round) return <div>Loading...</div>;
+    if (!user || !round) {
+        return (
+            <div className="screen-center">
+                <div className="glass p-4 text-center">
+                    <div className="spinner-border text-secondary mb-3" role="status" />
+                    <p className="mb-0 brand-muted">Loading round...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!round.started) {
         // Pre-game lobby
         return (
-            <div>
-                <h1>Round {roundId}</h1>
-                <h2>Host: {round.host_username}</h2>
-                <h3>Players:</h3>
-                <ul>
+            <main className="app-shell page-enter">
+                <section className="glass p-4">
+                    <h1 className="brand-title mb-1">Round #{roundId}</h1>
+                    <p className="brand-muted mb-3">Host: {round.host_username}</p>
+                    <h3 className="h5 brand-title">Players</h3>
+                    <ul className="players-list mb-3">
                     {players.map(player => (
-                        <li key={player.userid}>
-                            {player.username}{player.userid === round.host ? <b> H</b> : ''}
+                        <li key={player.userid} className="player-card">
+                            <span className="fw-semibold">{player.username}{player.userid === round.host ? <b> H</b> : ''}</span>
                         </li>
                     ))}
                 </ul>
                 {user.userId === round.host && (
-                    <div>
+                    <div className="d-grid gap-2" style={{ maxWidth: '500px' }}>
                         {user.admin && (
-                            <div style={{ marginBottom: '10px' }}>
+                            <div className="d-flex flex-wrap gap-2 align-items-center">
                                 <input
+                                    className="form-control"
                                     type="number"
                                     placeholder="Number of bots"
                                     value={botCount}
                                     onChange={(e) => setBotCount(parseInt(e.target.value) || 0)}
                                     min="0"
                                     max="10"
-                                    style={{ width: '120px', marginRight: '10px' }}
+                                    style={{ maxWidth: '150px' }}
                                 />
                                 {!round.started && (
-                                    <button onClick={handleLeaveLobby}>Leave Lobby</button>
+                                    <button className="btn btn-outline-light" onClick={handleLeaveLobby}>Leave Lobby</button>
                                 )}
-                                <button onClick={handleAddBots}>Add Bots</button>
+                                <button className="btn btn-secondary" onClick={handleAddBots}>Add Bots</button>
                                 {botPlayers.length > 0 && (
-                                    <p style={{ marginTop: '10px' }}>{botPlayers.length} bot(s) added to this round.</p>
+                                    <small className="brand-muted">{botPlayers.length} bot(s) added to this round.</small>
                                 )}
                             </div>
                         )}
-                        {roundError && <p style={{ color: 'red' }}>{roundError}</p>}
-                        <button onClick={handleStartRound}>Start Round</button>
+                        {roundError && <div className="alert alert-danger mb-0 py-2">{roundError}</div>}
+                        <button className="btn btn-primary" onClick={handleStartRound}>Start Round</button>
                     </div>
                 )}
-            </div>
+                </section>
+            </main>
         );
     }
 
     // Game in progress
     return (
-        <div style={{ display: 'flex', gap: '20px' }}>
-            <div style={{ flex: 1 }}>
-                <h1>Hangman Game</h1>
-                <div style={{ fontSize: '24px', margin: '20px 0' }}>
+        <main className="app-shell page-enter">
+            <div className="main-grid">
+                <section className="glass p-4">
+                <h1 className="brand-title mb-2">Hangman Game</h1>
+                <div className="mono-word fs-3 mb-3">
                     {renderWord()}
                 </div>
-                <div style={{ margin: '20px 0', display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div style={{ width: '200px', height: '200px', border: '2px solid black', marginBottom: '10px' }}>
+
+                <div className="mb-3">
+                    <div className="glass p-3 text-center">
+                        <div className="brand-muted mb-2">Hangman board</div>
+                        <div className="border border-secondary rounded p-3 bg-dark-subtle text-dark-emphasis">
                             Hangman Image ({currentPlayer ? 10 - currentPlayer.lives : 0} wrong guesses)
                         </div>
-                        <div style={{ fontSize: '14px', color: '#333' }}>
+                        <div className="small brand-muted mt-2">
                             Wrong guesses: {currentPlayer ? getWrongGuesses(currentPlayer).join(', ') || 'None' : 'None'}
                         </div>
                     </div>
                 </div>
+
                 {currentPlayer?.finished ? (
-                    <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#f4f4f4', borderRadius: '8px' }}>
+                    <div className="alert alert-info mb-0">
                         Waiting for other players to finish the round...
                     </div>
                 ) : (
-                    <div style={{ marginBottom: '20px' }}>
+                    <div className="d-flex flex-wrap gap-2">
                         <input
+                            className="form-control"
                             type="text"
                             value={guess}
                             onChange={(e) => setGuess(e.target.value)}
                             placeholder="Guess a letter or word"
                             maxLength={round.wordsize}
+                            style={{ maxWidth: '280px' }}
                         />
-                        <button onClick={handleGuess}>Submit</button>
-                        <button onClick={handleGiveUp} style={{ marginLeft: '10px', backgroundColor: '#ff6b6b' }}>Give Up</button>
+                        <button className="btn btn-primary" onClick={handleGuess}>Submit</button>
+                        <button className="btn btn-danger" onClick={handleGiveUp}>Give Up</button>
                     </div>
                 )}
-            </div>
-            <div style={{ width: '300px' }}>
-                <h3>Players:</h3>
-                <ul>
+
+                </section>
+
+                <aside className="glass p-3">
+                <h3 className="h5 brand-title mb-3">Players</h3>
+                <ul className="players-list">
                     {players.map(player => (
-                        <li key={player.userid} style={{ marginBottom: '12px' }}>
-                            <strong>{player.username}{player.userid === round.host ? <b> H</b> : ''}</strong>
-                            <div>Lives: {player.lives}</div>
-                            <div style={{ fontSize: '12px', color: '#444' }}>
-                                Progress: <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '2px', verticalAlign: 'middle' }}>{renderPlayerProgress(player)}</span>
+                        <li key={player.userid} className="player-card">
+                            <div className="fw-semibold">{player.username}{player.userid === round.host ? <b> H</b> : ''}</div>
+                            <div className="small brand-muted">Lives: {player.lives}</div>
+                            <div className="small brand-muted d-flex align-items-center gap-2">
+                                Progress:
+                                <span className="d-inline-flex flex-wrap gap-1">{renderPlayerProgress(player)}</span>
                             </div>
                         </li>
                     ))}
                 </ul>
+                </aside>
             </div>
-        </div>
+        </main>
     );
 }
 

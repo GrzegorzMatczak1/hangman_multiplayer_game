@@ -26,13 +26,11 @@ function Results() {
     const { id } = useParams<{ id: string }>();
     const roundId = parseInt(id!);
     const [user, setUser] = useState<{ userId: number; admin: boolean } | null>(null);
-    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [round, setRound] = useState<Round | null>(null);
     const [players, setPlayers] = useState<Player[]>([]);
     const [spectators, setSpectators] = useState<Player[]>([]);
     const [storedBots, setStoredBots] = useState<Player[]>([]);
     const [botCount, setBotCount] = useState(0);
-    const [hostLeftNotified, setHostLeftNotified] = useState(false);
     const navigate = useNavigate();
     const shuffle = <T,>(array: T[]) => [...array].sort(() => Math.random() - 0.5);
     const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -56,9 +54,8 @@ function Results() {
         .then(data => {
             if (data.valid) {
                 setUser({ userId: data.userId, admin: data.admin });
-                setCurrentUserId(data.userId);
-                loadResults(data.userId);
-                interval = window.setInterval(() => loadResults(data.userId), 10000); // Update every 10 seconds
+                loadResults();
+                interval = window.setInterval(() => loadResults(), 10000); // Update every 10 seconds
             } else {
                 localStorage.removeItem('token');
                 navigate('/login');
@@ -72,9 +69,8 @@ function Results() {
         };
     }, []);
 
-    const loadResults = async (tokenUserId?: number) => {
+    const loadResults = async () => {
         try {
-            const effectiveUserId = tokenUserId ?? currentUserId ?? user?.userId;
             const [roundRes, playersRes] = await Promise.all([
                 fetch(`http://localhost:3000/round/${roundId}`, {
                     headers: {
@@ -152,25 +148,11 @@ function Results() {
         const word = round.word.toLowerCase();
         const allLettersGuessed = word.split('').every((letter) => player.guesses.includes(letter));
         return (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+            <div className="d-flex flex-wrap gap-1">
                 {word.split('').map((letter, index) => {
                     const guessed = player.foundword || allLettersGuessed || player.guesses.includes(letter);
                     return (
-                        <span
-                            key={index}
-                            style={{
-                                width: '16px',
-                                height: '16px',
-                                borderRadius: '50%',
-                                border: '1.5px solid black',
-                                backgroundColor: guessed ? 'green' : 'white',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '10px',
-                                color: guessed ? 'white' : 'black'
-                            }}
-                        />
+                        <span key={index} className={`dot ${guessed ? 'filled' : ''}`} />
                     );
                 })}
             </div>
@@ -339,104 +321,110 @@ function Results() {
         navigate('/');
     };
 
-    if (!user || !round) return <div>Loading...</div>;
+    if (!user || !round) {
+        return (
+            <div className="screen-center">
+                <div className="glass p-4 text-center">
+                    <div className="spinner-border text-secondary mb-3" role="status" />
+                    <p className="mb-0 brand-muted">Loading results...</p>
+                </div>
+            </div>
+        );
+    }
 
     const winner = getWinner();
 
     return (
-        <div>
-            <h1>Round {roundId} Results</h1>
-            <div style={{ marginBottom: '20px' }}>
-                <p><strong>Word:</strong> {round.word}</p>
-                <p><strong>Host:</strong> {round.host_username}</p>
-                {winner && <p><strong>Winner:</strong> {winner.username}</p>}
-            </div>
+        <main className="app-shell page-enter">
+            <section className="glass p-4 mb-3">
+                <h1 className="brand-title mb-2">Round #{roundId} Results</h1>
+                <p className="brand-muted mb-1"><strong>Word:</strong> {round.word}</p>
+                <p className="brand-muted mb-1"><strong>Host:</strong> {round.host_username}</p>
+                {winner && <p className="brand-muted mb-0"><strong>Winner:</strong> {winner.username}</p>}
+            </section>
 
-            <div style={{ display: 'flex', gap: '20px' }}>
-                <div style={{ flex: 1 }}>
-                    <h3>Players:</h3>
-                    <ul>
+            <div className="main-grid">
+                <section className="glass p-3">
+                    <h3 className="h5 brand-title mb-3">Players</h3>
+                    <ul className="players-list mb-3">
                         {players.map(player => (
-                            <li key={player.userid} style={{ marginBottom: '10px' }}>
-                                <strong>{player.username}{player.userid === round.host ? <b> H</b> : ''}</strong>
-                                <div>Lives: {player.lives}, Time: {formatTime(player.time)}</div>
-                                <div style={{ fontSize: '12px', color: '#444', marginTop: '4px' }}>
-                                    {renderProgress(player)}
-                                </div>
+                            <li key={player.userid} className="player-card">
+                                <div className="fw-semibold">{player.username}{player.userid === round.host ? <b> H</b> : ''}</div>
+                                <div className="small brand-muted">Lives: {player.lives}, Time: {formatTime(player.time)}</div>
+                                <div className="small mt-1">{renderProgress(player)}</div>
                             </li>
                         ))}
                     </ul>
 
                     {spectators.length > 0 && (
                         <>
-                            <h3>Spectators:</h3>
-                            <ul>
+                            <h3 className="h6 brand-title mb-2">Spectators</h3>
+                            <ul className="players-list mb-0">
                                 {spectators.map(player => (
-                                    <li key={player.userid} style={{ marginBottom: '10px', color: '#666' }}>
-                                        <strong>{player.username}{player.userid === round.host ? <b> H</b> : ''}</strong> (Spectating)
-                                        <div>Lives: {player.lives}, Time: {formatTime(player.time)}</div>
-                                        <div style={{ fontSize: '12px', color: '#444', marginTop: '4px' }}>
-                                            {renderProgress(player)}
-                                        </div>
+                                    <li key={player.userid} className="player-card">
+                                        <div className="fw-semibold">{player.username}{player.userid === round.host ? <b> H</b> : ''} <small className="brand-muted">(Spectating)</small></div>
+                                        <div className="small brand-muted">Lives: {player.lives}, Time: {formatTime(player.time)}</div>
+                                        <div className="small mt-1">{renderProgress(player)}</div>
                                     </li>
                                 ))}
                             </ul>
                         </>
                     )}
-                </div>
+                </section>
 
-                <div style={{ width: '300px' }}>
+                <aside className="d-grid gap-3">
                     {user.userId === round.host && (
-                        <div style={{ marginBottom: '20px', padding: 20, border: '1px solid #ddd', borderRadius: 10, backgroundColor: '#fafafa' }}>
-                            <h3>Host Controls:</h3>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <section className="glass p-3">
+                            <h3 className="h5 brand-title mb-3">Host Controls</h3>
+                            <div className="d-grid gap-2">
                                 {user.admin && (
                                     <>
                                         <input
+                                            className="form-control"
                                             type="number"
                                             placeholder="Number of bots"
                                             value={botCount}
                                             onChange={(e) => setBotCount(parseInt(e.target.value) || 0)}
                                             min="0"
                                             max="10"
-                                            style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #ccc' }}
                                         />
-                                        <button onClick={handleAddBots} style={{ width: '100%', padding: '12px 16px' }}>
+                                        <button className="btn btn-secondary" onClick={handleAddBots}>
                                             Add Bots
                                         </button>
                                     </>
                                 )}
                                 {!round.finished && (
-                                    <button 
-                                        onClick={handleEndRound} 
-                                        style={{ width: '100%', padding: '12px 16px' }}
+                                    <button
+                                        className="btn btn-outline-light"
+                                        onClick={handleEndRound}
                                         disabled={!round.active}
                                     >
                                         End Round
                                     </button>
                                 )}
                                 <button
+                                    className="btn btn-primary"
                                     onClick={handleStartNewRound}
-                                    style={{ width: '100%', padding: '12px 16px' }}
                                     disabled={!round.active}
                                 >
                                     Start New Round
                                 </button>
-                                <button onClick={handleEndRoom} style={{ width: '100%', padding: '12px 16px', backgroundColor: '#dc3545', color: 'white' }}>
+                                <button className="btn btn-danger" onClick={handleEndRoom}>
                                     Leave Room
                                 </button>
                             </div>
-                        </div>
+                        </section>
                     )}
-                    <div style={{ padding: 20, border: '1px solid #ddd', borderRadius: 10, backgroundColor: '#f9f9f9' }}>
-                        <h3>Actions:</h3>
-                        <button onClick={handleLeaveRoom} style={{ width: '100%', padding: '12px 16px' }}>
+
+                    <section className="glass p-3">
+                        <h3 className="h6 brand-title mb-3">Actions</h3>
+                        <button className="btn btn-outline-light w-100" onClick={handleLeaveRoom}>
                             Leave Room
                         </button>
-                    </div>
-                </div>
+                    </section>
+                </aside>
             </div>
-        </div>
+        </main>
     );
 }
 

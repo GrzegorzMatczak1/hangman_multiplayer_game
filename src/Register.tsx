@@ -75,41 +75,47 @@ function Register() {
     };
 
     return (
-        <div>
-            <h2>Register</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Username:</label>
+        <main className="screen-center page-enter">
+            <section className="glass auth-card">
+                <h2 className="brand-title mb-2">Rejestracja</h2>
+                <p className="brand-muted mb-4">Załóż konto i zacznij grę w multiplayer.</p>
+                <form onSubmit={handleSubmit} className="d-grid gap-3">
+                    <div>
+                        <label className="form-label brand-muted">Username</label>
                     <input
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
+                        className="form-control"
                         required
                     />
-                </div>
-                <div>
-                    <label>Password:</label>
+                    </div>
+                    <div>
+                        <label className="form-label brand-muted">Password</label>
                     <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        className="form-control"
                         required
                     />
-                </div>
-                <div>
-                    <label>Confirm Password:</label>
+                    </div>
+                    <div>
+                        <label className="form-label brand-muted">Confirm Password</label>
                     <input
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="form-control"
                         required
                     />
-                </div>
-                <button type="submit">Register</button>
-            </form>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <p>Already have an account? <Link to="/login">Login</Link></p>
-        </div>
+                    </div>
+                    <button type="submit" className="btn btn-primary fw-semibold">Register</button>
+                </form>
+                {error && <div className="alert alert-danger mt-3 mb-0 py-2">{error}</div>}
+                <p className="mt-4 mb-0 brand-muted">Already have an account? <Link to="/login">Login</Link></p>
+            </section>
+        </main>
     );
 }
 

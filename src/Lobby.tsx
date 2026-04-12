@@ -235,309 +235,211 @@ function Lobby() {
         }
     };
 
-    if (!user) return <div>Loading...</div>;
+    if (!user) {
+        return (
+            <div className="screen-center">
+                <div className="glass p-4 text-center">
+                    <div className="spinner-border text-secondary mb-3" role="status" />
+                    <p className="mb-0 brand-muted">Loading lobby...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div style={{ position: 'relative' }}>
-            <button
-                style={{ position: 'absolute', top: 10, right: 10 }}
-                onClick={() => setShowSettings(!showSettings)}
-            >
-                Settings
-            </button>
+        <main className="app-shell page-enter">
+            <div className="app-header">
+                <div>
+                    <h1 className="brand-title mb-1">Lobby</h1>
+                    <p className="brand-muted mb-0">Wybierz aktywną rundę lub stwórz własny pokój.</p>
+                </div>
+                <button className="btn btn-outline-light" onClick={() => setShowSettings(!showSettings)}>
+                    Settings
+                </button>
+            </div>
+
             {showSettings && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        alignItems: 'stretch',
-                        zIndex: 1000
-                    }}
-                    onClick={() => setShowSettings(false)}
-                >
-                    <div
-                        style={{
-                            width: 320,
-                            maxWidth: '100%',
-                            background: 'white',
-                            padding: 20,
-                            boxShadow: '-4px 0 16px rgba(0,0,0,0.15)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 10
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button onClick={() => setShowChangeUsername(true)}>Change Username</button>
-                        <button onClick={() => setShowChangePassword(true)}>Change Password</button>
-                        {user.admin && <button onClick={() => navigate('/wordconfig')}>Add Words</button>}
-                        <button onClick={() => setShowLogoutConfirm(true)} style={{ backgroundColor: '#ff6b6b', color: 'white' }}>Logout</button>
-                        <button onClick={() => setShowDeletePasswordConfirm(true)} style={{ backgroundColor: '#dc3545', color: 'white' }}>Delete Account</button>
+                <div className="overlay overlay-end" onClick={() => setShowSettings(false)}>
+                    <div className="glass settings-panel d-grid gap-2" onClick={(e) => e.stopPropagation()}>
+                        <h5 className="brand-title mb-2">Account Settings</h5>
+                        <button className="btn btn-outline-light text-start" onClick={() => setShowChangeUsername(true)}>Change Username</button>
+                        <button className="btn btn-outline-light text-start" onClick={() => setShowChangePassword(true)}>Change Password</button>
+                        {user.admin && <button className="btn btn-secondary text-start" onClick={() => navigate('/wordconfig')}>Word Configuration</button>}
+                        <button className="btn btn-warning text-dark text-start" onClick={() => setShowLogoutConfirm(true)}>Logout</button>
+                        <button className="btn btn-danger text-start" onClick={() => setShowDeletePasswordConfirm(true)}>Delete Account</button>
+                        <button className="btn btn-sm btn-outline-light mt-2" onClick={() => setShowSettings(false)}>
+                            Close
+                        </button>
                     </div>
-                    <button
-                        style={{
-                            position: 'absolute',
-                            right: 375,
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            padding: '8px 16px',
-                            backgroundColor: '#f0f0f0',
-                            border: 'none',
-                            borderRadius: 4,
-                            cursor: 'pointer'
-                        }}
-                        onClick={() => setShowSettings(false)}
-                    >
-                        Close
-                    </button>
                 </div>
             )}
+
             {showChangeUsername && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 1000
-                    }}
-                    onClick={() => setShowChangeUsername(false)}
-                >
-                    <div
-                        style={{ background: 'white', padding: 20, borderRadius: 10, position: 'relative' }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button style={{ position: 'absolute', top: 10, left: 10 }} onClick={() => setShowChangeUsername(false)}>Return</button>
-                        <h3>Change Username</h3>
+                <div className="overlay" onClick={() => setShowChangeUsername(false)}>
+                    <div className="glass modal-card" onClick={(e) => e.stopPropagation()}>
+                        <h4 className="brand-title">Change Username</h4>
+                        <div className="d-grid gap-2 mt-3">
                         <input
+                            className="form-control"
                             type="text"
                             placeholder="New Username"
                             value={newUsername}
                             onChange={(e) => setNewUsername(e.target.value)}
                         />
                         <input
+                            className="form-control"
                             type="password"
                             placeholder="Current Password"
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
                         />
-                        <button onClick={handleChangeUsername}>Submit</button>
-                        {error && <p style={{ color: 'red' }}>{error}</p>}
+                        </div>
+                        {error && <div className="alert alert-danger mt-3 mb-0 py-2">{error}</div>}
+                        <div className="d-flex justify-content-end gap-2 mt-3">
+                            <button className="btn btn-outline-light" onClick={() => setShowChangeUsername(false)}>Cancel</button>
+                            <button className="btn btn-primary" onClick={handleChangeUsername}>Submit</button>
+                        </div>
                     </div>
                 </div>
             )}
+
             {showChangePassword && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 1000
-                    }}
-                    onClick={() => setShowChangePassword(false)}
-                >
-                    <div
-                        style={{ background: 'white', padding: 20, borderRadius: 10, position: 'relative' }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button style={{ position: 'absolute', top: 10, left: 10 }} onClick={() => setShowChangePassword(false)}>Return</button>
-                        <h3>Change Password</h3>
+                <div className="overlay" onClick={() => setShowChangePassword(false)}>
+                    <div className="glass modal-card" onClick={(e) => e.stopPropagation()}>
+                        <h4 className="brand-title">Change Password</h4>
+                        <div className="d-grid gap-2 mt-3">
                         <input
+                            className="form-control"
                             type="password"
                             placeholder="Previous Password"
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
                         />
                         <input
+                            className="form-control"
                             type="password"
                             placeholder="New Password"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                         />
-                        <button onClick={handleChangePassword}>Submit</button>
-                        {error && <p style={{ color: 'red' }}>{error}</p>}
-                    </div>
-                </div>
-            )}
-            {showLogoutConfirm && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 1001
-                    }}
-                    onClick={() => setShowLogoutConfirm(false)}
-                >
-                    <div
-                        style={{ background: 'white', padding: 30, borderRadius: 10, textAlign: 'center' }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3>Are you sure you want to log out?</h3>
-                        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
-                            <button onClick={() => setShowLogoutConfirm(false)}>No</button>
-                            <button onClick={handleLogout} style={{ backgroundColor: '#ff6b6b', color: 'white' }}>OK</button>
+                        </div>
+                        {error && <div className="alert alert-danger mt-3 mb-0 py-2">{error}</div>}
+                        <div className="d-flex justify-content-end gap-2 mt-3">
+                            <button className="btn btn-outline-light" onClick={() => setShowChangePassword(false)}>Cancel</button>
+                            <button className="btn btn-primary" onClick={handleChangePassword}>Submit</button>
                         </div>
                     </div>
                 </div>
             )}
+
+            {showLogoutConfirm && (
+                <div className="overlay" onClick={() => setShowLogoutConfirm(false)}>
+                    <div className="glass modal-card" onClick={(e) => e.stopPropagation()}>
+                        <h4 className="brand-title">Are you sure you want to log out?</h4>
+                        <div className="d-flex justify-content-end gap-2 mt-4">
+                            <button className="btn btn-outline-light" onClick={() => setShowLogoutConfirm(false)}>No</button>
+                            <button className="btn btn-warning text-dark" onClick={handleLogout}>Yes, logout</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {showDeletePasswordConfirm && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 1001
-                    }}
-                    onClick={() => setShowDeletePasswordConfirm(false)}
-                >
-                    <div
-                        style={{ background: 'white', padding: 30, borderRadius: 10, minWidth: 400 }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3>
-                            Are you sure you want to <span style={{ color: 'red', fontWeight: 'bold' }}>DELETE YOUR ACCOUNT PERMANENTLY</span>?
-                        </h3>
-                        <p>Please enter your password twice to confirm:</p>
+                <div className="overlay" onClick={() => setShowDeletePasswordConfirm(false)}>
+                    <div className="glass modal-card" onClick={(e) => e.stopPropagation()}>
+                        <h4 className="brand-title">Delete Account Permanently</h4>
+                        <p className="brand-muted">Enter your password twice to confirm.</p>
+                        <div className="d-grid gap-2 mt-2">
                         <input
+                            className="form-control"
                             type="password"
                             placeholder="Password"
                             value={deletePassword}
                             onChange={(e) => setDeletePassword(e.target.value)}
-                            style={{ display: 'block', marginBottom: 10, width: '100%', padding: 8 }}
                         />
                         <input
+                            className="form-control"
                             type="password"
                             placeholder="Confirm Password"
                             value={deletePasswordConfirm}
                             onChange={(e) => setDeletePasswordConfirm(e.target.value)}
-                            style={{ display: 'block', marginBottom: 10, width: '100%', padding: 8 }}
                         />
-                        {error && <p style={{ color: 'red' }}>{error}</p>}
-                        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                            <button onClick={() => { setShowDeletePasswordConfirm(false); setDeletePassword(''); setDeletePasswordConfirm(''); setError(''); }}>Cancel</button>
-                            <button onClick={() => { if (deletePassword === deletePasswordConfirm) { setShowDeletePasswordConfirm(false); setShowDeleteConfirm(true); } else { setError('Passwords do not match'); } }} style={{ backgroundColor: '#dc3545', color: 'white' }}>Confirm</button>
+                        </div>
+                        {error && <div className="alert alert-danger mt-3 mb-0 py-2">{error}</div>}
+                        <div className="d-flex justify-content-end gap-2 mt-3">
+                            <button className="btn btn-outline-light" onClick={() => { setShowDeletePasswordConfirm(false); setDeletePassword(''); setDeletePasswordConfirm(''); setError(''); }}>Cancel</button>
+                            <button className="btn btn-danger" onClick={() => { if (deletePassword === deletePasswordConfirm) { setShowDeletePasswordConfirm(false); setShowDeleteConfirm(true); } else { setError('Passwords do not match'); } }}>Confirm</button>
                         </div>
                     </div>
                 </div>
             )}
+
             {showDeleteConfirm && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 1001
-                    }}
-                    onClick={() => setShowDeleteConfirm(false)}
-                >
-                    <div
-                        style={{ background: 'white', padding: 30, borderRadius: 10, textAlign: 'center', minWidth: 400 }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3>Are you sure you want to delete your account?</h3>
-                        <p>You will not be able to recover it once it gets deleted.</p>
-                        <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
-                            <button onClick={() => setShowDeleteConfirm(false)}>No</button>
-                            <button onClick={handleDeleteAccount} style={{ backgroundColor: '#dc3545', color: 'white' }}>Yes I am Sure</button>
+                <div className="overlay" onClick={() => setShowDeleteConfirm(false)}>
+                    <div className="glass modal-card" onClick={(e) => e.stopPropagation()}>
+                        <h4 className="brand-title">Final Confirmation</h4>
+                        <p className="brand-muted">Your account cannot be recovered after deletion.</p>
+                        <div className="d-flex justify-content-end gap-2 mt-3">
+                            <button className="btn btn-outline-light" onClick={() => setShowDeleteConfirm(false)}>No</button>
+                            <button className="btn btn-danger" onClick={handleDeleteAccount}>Delete permanently</button>
                         </div>
                     </div>
                 </div>
             )}
-            <h1>Lobby</h1>
-            <div style={{ display: 'flex', gap: 20, marginBottom: 20 }}>
-                <button onClick={handleCreateRoom}>Create New Room</button>
-            </div>
-            <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-                <button 
-                    onClick={() => {
-                        setShowPreviousRounds(false);
-                        fetchRooms(false);
-                    }}
-                    style={{ 
-                        backgroundColor: !showPreviousRounds ? '#4CAF50' : '#f0f0f0',
-                        color: !showPreviousRounds ? 'white' : 'black'
-                    }}
-                >
-                    Current Rounds
-                </button>
-                <button 
-                    onClick={() => {
-                        setShowPreviousRounds(true);
-                        fetchRooms(true);
-                    }}
-                    style={{ 
-                        backgroundColor: showPreviousRounds ? '#4CAF50' : '#f0f0f0',
-                        color: showPreviousRounds ? 'white' : 'black'
-                    }}
-                >
-                    Previous Rounds
-                </button>
-            </div>
-            <div>
-                <h2>{showPreviousRounds ? 'Previous Rounds' : 'Active Rooms'}</h2>
+
+            <section className="glass p-4">
+                <div className="d-flex flex-wrap gap-2 mb-3">
+                    <button className="btn btn-primary" onClick={handleCreateRoom}>Create New Room</button>
+                </div>
+
+                <div className="btn-group mb-3" role="group" aria-label="Round list toggle">
+                    <button
+                        className={`btn ${!showPreviousRounds ? 'btn-secondary' : 'btn-outline-light'}`}
+                        onClick={() => {
+                            setShowPreviousRounds(false);
+                            fetchRooms(false);
+                        }}
+                    >
+                        Current Rounds
+                    </button>
+                    <button
+                        className={`btn ${showPreviousRounds ? 'btn-secondary' : 'btn-outline-light'}`}
+                        onClick={() => {
+                            setShowPreviousRounds(true);
+                            fetchRooms(true);
+                        }}
+                    >
+                        Previous Rounds
+                    </button>
+                </div>
+
+                <h2 className="h4 brand-title mb-3">{showPreviousRounds ? 'Previous Rounds' : 'Active Rooms'}</h2>
+
                 {loadingRooms ? (
-                    <p>Loading rooms...</p>
+                    <div className="d-flex align-items-center gap-2 brand-muted">
+                        <div className="spinner-border spinner-border-sm text-secondary" role="status" />
+                        Loading rooms...
+                    </div>
                 ) : rooms.length === 0 ? (
-                    <p>No rooms available yet.</p>
+                    <p className="brand-muted mb-0">No rooms available yet.</p>
                 ) : (
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
+                    <ul className="list-unstyled mb-0 d-grid gap-2">
                         {rooms.map(room => (
-                            <li 
-                                key={room.id} 
-                                style={{ 
-                                    padding: 10, 
-                                    marginBottom: 10, 
-                                    border: '1px solid #ccc', 
-                                    borderRadius: 5,
-                                    cursor: 'pointer',
-                                    backgroundColor: '#f9f9f9'
-                                }}
+                            <li
+                                key={room.id}
+                                className="rooms-list-item p-3"
                                 onClick={() => showPreviousRounds ? navigate(`/results/${room.id}`) : handleJoinRoom(room.id)}
                             >
-                                Room {room.id} - Host: {room.host} - Word Size: {room.wordsize}
+                                <div className="fw-semibold">Room #{room.id}</div>
+                                <small className="brand-muted">Host: {room.host} | Word Size: {room.wordsize}</small>
                             </li>
                         ))}
                     </ul>
                 )}
-            </div>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-        </div>
+
+                {error && <div className="alert alert-danger mt-3 mb-0 py-2">{error}</div>}
+            </section>
+        </main>
     );
 }
 
