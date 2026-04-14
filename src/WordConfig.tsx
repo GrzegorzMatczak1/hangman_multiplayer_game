@@ -187,68 +187,101 @@ function WordConfig() {
         }
     };
 
-    if (admin === null) return <div>Loading...</div>;
+    if (admin === null) {
+        return (
+            <div className="screen-center">
+                <div className="glass p-4 text-center">
+                    <div className="spinner-border text-secondary mb-3" role="status" />
+                    <p className="mb-0 brand-muted">Loading settings...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (admin) {
         return (
-            <div>
-                <h2>Word Configuration</h2>
-                <div>
-                    <input
-                        type="text"
-                        value={newWord}
-                        onChange={(e) => setNewWord(e.target.value)}
-                        placeholder="Enter new word"
-                    />
-                    <button onClick={handleAddWord}>Add Word</button>
-                </div>
-                <div style={{ marginTop: 20 }}>
-                    <button onClick={handleLoadWords}>Load Words from JSON</button>
-                </div>
-                <div style={{ marginTop: 12 }}>
-                    <button onClick={() => navigate('/')}>Back to Lobby</button>
-                </div>
-                <div style={{ marginTop: 20, padding: 16, border: '1px solid #ddd', borderRadius: 10, backgroundColor: '#fafafa' }}>
-                    <h3>Create Bot Accounts</h3>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                        <input
-                            type="number"
-                            value={botCount}
-                            min={1}
-                            max={50}
-                            onChange={(e) => setBotCount(parseInt(e.target.value) || 1)}
-                            style={{ width: 100, padding: 8, borderRadius: 6, border: '1px solid #ccc' }}
-                        />
-                        <button onClick={handleCreateBots}>Create Bot Users</button>
+            <main className="app-shell page-enter">
+                <div className="app-header">
+                    <div>
+                        <h1 className="brand-title mb-1">Word Configuration</h1>
+                        <p className="brand-muted mb-0">Zarządzaj słowami i botami systemowymi.</p>
                     </div>
-                    {botMessage && <p style={{ marginTop: 10, color: 'green' }}>{botMessage}</p>}
+                    <button className="btn btn-outline-light" onClick={() => navigate('/')}>Back to Lobby</button>
                 </div>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-                <ul>
-                    {words.map(w => (
-                        <li key={w.id}>
-                            {w.word} ({w.size}) <button onClick={() => handleDeleteWord(w.id)}>X</button>
-                        </li>
-                    ))}
-                </ul>
-            </div>
+
+                <div className="row g-3">
+                    <div className="col-12 col-lg-8">
+                        <section className="glass p-3 h-100">
+                            <h3 className="h5 brand-title mb-3">Words</h3>
+                            <div className="d-flex gap-2 mb-3">
+                                <input
+                                    className="form-control"
+                                    type="text"
+                                    value={newWord}
+                                    onChange={(e) => setNewWord(e.target.value)}
+                                    placeholder="Enter new word"
+                                />
+                                <button className="btn btn-primary" onClick={handleAddWord}>Add Word</button>
+                            </div>
+                            <div className="d-flex flex-wrap gap-2 mb-3">
+                                <button className="btn btn-secondary" onClick={handleLoadWords}>Load Words from JSON</button>
+                            </div>
+
+                            <ul className="word-list mb-0">
+                                {words.map(w => (
+                                    <li className="word-list-item d-flex justify-content-between align-items-center" key={w.id}>
+                                        <span>{w.word} <small className="brand-muted">({w.size})</small></span>
+                                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteWord(w.id)}>Delete</button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    </div>
+
+                    <div className="col-12 col-lg-4">
+                        <section className="glass p-3">
+                            <h3 className="h5 brand-title mb-3">Create Bot Accounts</h3>
+                            <div className="d-flex gap-2 align-items-center">
+                                <input
+                                    className="form-control"
+                                    type="number"
+                                    value={botCount}
+                                    min={1}
+                                    max={50}
+                                    onChange={(e) => setBotCount(parseInt(e.target.value) || 1)}
+                                />
+                                <button className="btn btn-primary" onClick={handleCreateBots}>Create</button>
+                            </div>
+                            {botMessage && <div className="alert alert-success mt-3 mb-0 py-2">{botMessage}</div>}
+                        </section>
+                    </div>
+                </div>
+
+                {error && <div className="alert alert-danger mt-3 mb-0 py-2">{error}</div>}
+            </main>
         );
     } else {
         return (
-            <div>
-                <h2>You shouldn't be here</h2>
-                <button onClick={() => navigate('/')}>Go back</button>
-                <div>
-                    <input
-                        type="password"
-                        value={secret}
-                        onChange={(e) => setSecret(e.target.value)}
-                        placeholder="Enter secret"
-                    />
-                    <button onClick={handlePromote}>Submit</button>
-                </div>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-            </div>
+            <main className="app-shell page-enter">
+                <section className="glass p-4" style={{ maxWidth: '620px', margin: '0 auto' }}>
+                    <h2 className="brand-title">You shouldn't be here</h2>
+                    <p className="brand-muted">Jeśli masz kod administracyjny, możesz podnieść uprawnienia.</p>
+                    <div className="d-flex gap-2 mb-3">
+                        <input
+                            className="form-control"
+                            type="password"
+                            value={secret}
+                            onChange={(e) => setSecret(e.target.value)}
+                            placeholder="Enter secret"
+                        />
+                        <button className="btn btn-primary" onClick={handlePromote}>Submit</button>
+                    </div>
+                    <div className="d-flex gap-2">
+                        <button className="btn btn-outline-light" onClick={() => navigate('/')}>Go back</button>
+                    </div>
+                    {error && <div className="alert alert-danger mt-3 mb-0 py-2">{error}</div>}
+                </section>
+            </main>
         );
     }
 }

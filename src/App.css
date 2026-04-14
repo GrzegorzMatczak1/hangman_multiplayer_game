@@ -1,0 +1,126 @@
+.page-enter {
+	animation: page-enter 0.35s ease;
+}
+
+.screen-center {
+	min-height: 100vh;
+	display: grid;
+	place-items: center;
+	padding: 1rem 0;
+}
+
+.auth-card {
+	width: min(460px, 100%);
+	padding: 1.7rem;
+}
+
+.app-header {
+	display: flex;
+	justify-content: space-between;
+	gap: 0.7rem;
+	align-items: center;
+	margin-bottom: 1rem;
+}
+
+.rooms-list-item {
+	cursor: pointer;
+	border-radius: 0.8rem;
+	border: 1px solid rgba(173, 214, 237, 0.25);
+	background: rgba(255, 255, 255, 0.04);
+	transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.rooms-list-item:hover {
+	transform: translateY(-1px);
+	border-color: rgba(45, 184, 176, 0.75);
+	background: rgba(45, 184, 176, 0.15);
+}
+
+.overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(6, 12, 22, 0.64);
+	backdrop-filter: blur(4px);
+	z-index: 40;
+}
+
+.overlay-end {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.settings-panel {
+	width: min(380px, 100%);
+	padding: 1rem;
+	border-left: 1px solid rgba(173, 214, 237, 0.25);
+}
+
+.modal-card {
+	width: min(530px, calc(100% - 1rem));
+	margin: 2rem auto;
+	padding: 1.2rem;
+}
+
+.main-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(260px, 310px);
+	gap: 1rem;
+}
+
+.players-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.55rem;
+}
+
+.player-card {
+	border: 1px solid rgba(173, 214, 237, 0.24);
+	border-radius: 0.75rem;
+	padding: 0.6rem 0.7rem;
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.word-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.45rem;
+	max-height: 52vh;
+	overflow: auto;
+}
+
+.word-list-item {
+	border: 1px solid rgba(173, 214, 237, 0.24);
+	border-radius: 0.7rem;
+	padding: 0.45rem 0.6rem;
+	background: rgba(255, 255, 255, 0.04);
+}
+
+@keyframes page-enter {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@media (max-width: 900px) {
+	.main-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.app-shell {
+		width: calc(100% - 1rem);
+	}
+
+	.auth-card {
+		width: min(460px, calc(100% - 1rem));
+	}
+}

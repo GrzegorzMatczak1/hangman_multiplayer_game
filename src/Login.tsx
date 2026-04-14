@@ -57,32 +57,37 @@ function Login() {
     };
 
     return (
-        <div>
-            <h2>Login</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Username:</label>
+        <main className="screen-center page-enter">
+            <section className="glass auth-card">
+                <h2 className="brand-title mb-2">Logowanie</h2>
+                <p className="brand-muted mb-4">Zaloguj się i dołącz do aktywnych rund.</p>
+                <form onSubmit={handleSubmit} className="d-grid gap-3">
+                    <div>
+                        <label className="form-label brand-muted">Username</label>
                     <input
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
+                        className="form-control"
                         required
                     />
-                </div>
-                <div>
-                    <label>Password:</label>
+                    </div>
+                    <div>
+                        <label className="form-label brand-muted">Password</label>
                     <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        className="form-control"
                         required
                     />
-                </div>
-                <button type="submit">Login</button>
-            </form>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <p>Don't have an account? <Link to="/register">Register</Link></p>
-        </div>
+                    </div>
+                    <button type="submit" className="btn btn-primary fw-semibold">Login</button>
+                </form>
+                {error && <div className="alert alert-danger mt-3 mb-0 py-2">{error}</div>}
+                <p className="mt-4 mb-0 brand-muted">Don't have an account? <Link to="/register">Register</Link></p>
+            </section>
+        </main>
     );
 }
 
