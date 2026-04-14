@@ -1,0 +1,431 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+
+interface Player {
+    userid: number;
+    username: string;
+    lives: number;
+    guesses: string[];
+    time: number;
+    finished: boolean;
+    foundword: boolean;
+}
+
+interface Round {
+    id: number;
+    host: number;
+    word: string;
+    wordsize: number;
+    active: boolean;
+    started: boolean;
+    finished: boolean;
+    host_username: string;
+}
+
+function Results() {
+    const { id } = useParams<{ id: string }>();
+    const roundId = parseInt(id!);
+    const [user, setUser] = useState<{ userId: number; admin: boolean } | null>(null);
+    const [round, setRound] = useState<Round | null>(null);
+    const [players, setPlayers] = useState<Player[]>([]);
+    const [spectators, setSpectators] = useState<Player[]>([]);
+    const [storedBots, setStoredBots] = useState<Player[]>([]);
+    const [botCount, setBotCount] = useState(0);
+    const navigate = useNavigate();
+    const shuffle = <T,>(array: T[]) => [...array].sort(() => Math.random() - 0.5);
+    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    const getRandomId = () => -(Date.now() + Math.floor(Math.random() * 1000000));
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+
+        let interval: number | undefined;
+
+        fetch('http://localhost:3000/user/validateToken', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.valid) {
+                setUser({ userId: data.userId, admin: data.admin });
+                loadResults();
+                interval = window.setInterval(() => loadResults(), 10000); // Update every 10 seconds
+            } else {
+                localStorage.removeItem('token');
+                navigate('/login');
+            }
+        });
+
+        return () => {
+            if (interval) {
+                clearInterval(interval);
+            }
+        };
+    }, []);
+
+    const loadResults = async () => {
+        try {
+            const [roundRes, playersRes] = await Promise.all([
+                fetch(`http://localhost:3000/round/${roundId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')!}`
+                    }
+                }),
+                fetch(`http://localhost:3000/round/${roundId}/players`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')!}`
+                    }
+                })
+            ]);
+
+            if (roundRes.ok && playersRes.ok) {
+                const roundData = await roundRes.json();
+                const playersData = await playersRes.json();
+
+                const wasInactive = !roundData.active;
+                if (wasInactive) {
+                    roundData.started = true;
+                    roundData.finished = true;
+                }
+               
+
+                setRound(roundData);
+
+                const storedBots = JSON.parse(localStorage.getItem(`bots_${roundId}`) || '[]');
+                setStoredBots(storedBots);
+
+                const allParticipants = [...playersData, ...storedBots].map((p: Player) => {
+                    if (!roundData.active && !p.finished) {
+                        return { 
+                            ...p, 
+                            finished: true, 
+                            time: -1,
+                            lives: 10
+                        };
+                    }
+                    return p;
+                });
+                const activeParticipants = allParticipants.slice(0, 10);
+                const overflowSpectators = allParticipants.slice(10);
+
+                const finishedPlayers = activeParticipants.filter((p: Player) => p.finished);
+                const unfinishedPlayers = activeParticipants.filter((p: Player) => !p.finished);
+
+                finishedPlayers.sort((a: Player, b: Player) => {
+                    if (a.lives !== b.lives) return b.lives - a.lives;
+                    return a.time - b.time;
+                });
+
+                setPlayers(finishedPlayers);
+                setSpectators([...unfinishedPlayers, ...overflowSpectators]);
+            }
+        } catch (error) {
+            console.error('Error loading results:', error);
+        }
+    };
+
+    const formatTime = (time: number) => {
+        if (time === 0) return '-- : --';
+        if (time === -1) return 'DNF'; // Did not finish
+        const minutes = Math.floor(time / 60);
+        const seconds = time % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const getWinner = () => {
+        if (players.length === 0) return null;
+        return players[0]; // First in sorted list
+    };
+
+    const renderProgress = (player: Player) => {
+        if (!round) return null;
+        const word = round.word.toLowerCase();
+        const allLettersGuessed = word.split('').every((letter) => player.guesses.includes(letter));
+        return (
+            <div className="d-flex flex-wrap gap-1">
+                {word.split('').map((letter, index) => {
+                    const guessed = player.foundword || allLettersGuessed || player.guesses.includes(letter);
+                    return (
+                        <span key={index} className={`dot ${guessed ? 'filled' : ''}`} />
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const handleStartNewRound = async () => {
+        if (!user || !round || !round.finished) return;
+
+        const token = localStorage.getItem('token')!;
+        const allRealPlayers = [...players, ...spectators].filter((p) => p.userid > 0);
+        const uniquePlayerIds = Array.from(new Set(allRealPlayers.map((p) => p.userid)));
+
+        try {
+            // Reset all real player stats before starting the new round.
+            await Promise.all(uniquePlayerIds.map((playerId) =>
+                fetch(`http://localhost:3000/user/resetall/${playerId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+            ));
+
+            const res = await fetch(`http://localhost:3000/round/create/${user.userId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error('Could not create new round');
+            }
+
+            const data = await res.json();
+            const newRoundId = data.roundId;
+
+            await Promise.all(uniquePlayerIds.map((playerId) =>
+                fetch(`http://localhost:3000/roundinfo/create/${newRoundId}/${playerId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+            ));
+
+            const nextBots = shuffle([...storedBots]);
+            localStorage.setItem(`bots_${newRoundId}`, JSON.stringify(nextBots));
+
+            navigate(`/round/${newRoundId}`);
+        } catch (error) {
+            console.error('Error starting new round:', error);
+        }
+    };
+
+    const handleEndRound = async () => {
+        if (!round) return;
+
+        try {
+            await fetch('http://localhost:3000/round/changefinished', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')!}`
+                },
+                body: JSON.stringify({ roundId })
+            });
+
+            await fetch('http://localhost:3000/round/changeactive', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')!}`
+                },
+                body: JSON.stringify({ roundId })
+            });
+
+            setStoredBots((prev) => {
+                const updated = prev.map((bot) =>
+                    bot.finished ? bot : { ...bot, finished: true, time: bot.time || -1 }
+                );
+                localStorage.setItem(`bots_${roundId}`, JSON.stringify(updated));
+                return updated;
+            });
+
+            setRound((prev) => (prev ? { ...prev, finished: true } : prev));
+            loadResults();
+        } catch (error) {
+            console.error('Error ending round:', error);
+        }
+    };
+
+    const handleEndRoom = async () => {
+        if (!round) return;
+
+        try {
+            await fetch('http://localhost:3000/round/changeactive', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')!}`
+                },
+                body: JSON.stringify({ roundId })
+            });
+        } catch (error) {
+            console.error('Error ending room:', error);
+        } finally {
+            navigate('/');
+        }
+    };
+
+    const handleAddBots = async () => {
+        if (!user || !round || !user.admin || user.userId !== round.host) return;
+        if (botCount <= 0) return;
+
+        try {
+            const res = await fetch('/spiffing_bots.json');
+            if (!res.ok) {
+                throw new Error('Unable to load bot names');
+            }
+            const availableNames: string[] = await res.json();
+            const usedNames = new Set([
+                ...players.map((p) => p.username),
+                ...spectators.map((p) => p.username),
+                ...storedBots.map((bot) => bot.username)
+            ]);
+            let available = availableNames.filter((name) => !usedNames.has(name));
+            const addCount = Math.min(botCount, available.length);
+
+            if (available.length === 0) {
+                return;
+            }
+
+            for (let i = 0; i < addCount; i += 1) {
+                await sleep(1000);
+                const index = Date.now() % available.length;
+                const name = available[index];
+                available = available.filter((botName) => botName !== name);
+
+                const newBot: Player = {
+                    userid: getRandomId(),
+                    username: name,
+                    lives: 10,
+                    guesses: [],
+                    time: 0,
+                    finished: false,
+                    foundword: false
+                };
+
+                setStoredBots((prev) => {
+                    const updated = [...prev, newBot];
+                    localStorage.setItem(`bots_${roundId}`, JSON.stringify(updated));
+                    return updated;
+                });
+                setBotCount((prev) => Math.max(prev - 1, 0));
+            }
+
+            loadResults();
+        } catch (error) {
+            console.error('Error adding bots:', error);
+        }
+    };
+
+    const handleLeaveRoom = async () => {
+        navigate('/');
+    };
+
+    if (!user || !round) {
+        return (
+            <div className="screen-center">
+                <div className="glass p-4 text-center">
+                    <div className="spinner-border text-secondary mb-3" role="status" />
+                    <p className="mb-0 brand-muted">Loading results...</p>
+                </div>
+            </div>
+        );
+    }
+
+    const winner = getWinner();
+
+    return (
+        <main className="app-shell page-enter">
+            <section className="glass p-4 mb-3">
+                <h1 className="brand-title mb-2">Round #{roundId} Results</h1>
+                <p className="brand-muted mb-1"><strong>Word:</strong> {round.word}</p>
+                <p className="brand-muted mb-1"><strong>Host:</strong> {round.host_username}</p>
+                {winner && <p className="brand-muted mb-0"><strong>Winner:</strong> {winner.username}</p>}
+            </section>
+
+            <div className="main-grid">
+                <section className="glass p-3">
+                    <h3 className="h5 brand-title mb-3">Players</h3>
+                    <ul className="players-list mb-3">
+                        {players.map(player => (
+                            <li key={player.userid} className="player-card">
+                                <div className="fw-semibold">{player.username}{player.userid === round.host ? <b> H</b> : ''}</div>
+                                <div className="small brand-muted">Lives: {player.lives}, Time: {formatTime(player.time)}</div>
+                                <div className="small mt-1">{renderProgress(player)}</div>
+                            </li>
+                        ))}
+                    </ul>
+
+                    {spectators.length > 0 && (
+                        <>
+                            <h3 className="h6 brand-title mb-2">Spectators</h3>
+                            <ul className="players-list mb-0">
+                                {spectators.map(player => (
+                                    <li key={player.userid} className="player-card">
+                                        <div className="fw-semibold">{player.username}{player.userid === round.host ? <b> H</b> : ''} <small className="brand-muted">(Spectating)</small></div>
+                                        <div className="small brand-muted">Lives: {player.lives}, Time: {formatTime(player.time)}</div>
+                                        <div className="small mt-1">{renderProgress(player)}</div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </>
+                    )}
+                </section>
+
+                <aside className="d-grid gap-3">
+                    {user.userId === round.host && (
+                        <section className="glass p-3">
+                            <h3 className="h5 brand-title mb-3">Host Controls</h3>
+                            <div className="d-grid gap-2">
+                                {user.admin && (
+                                    <>
+                                        <input
+                                            className="form-control"
+                                            type="number"
+                                            placeholder="Number of bots"
+                                            value={botCount}
+                                            onChange={(e) => setBotCount(parseInt(e.target.value) || 0)}
+                                            min="0"
+                                            max="10"
+                                        />
+                                        <button className="btn btn-secondary" onClick={handleAddBots}>
+                                            Add Bots
+                                        </button>
+                                    </>
+                                )}
+                                {!round.finished && (
+                                    <button
+                                        className="btn btn-outline-light"
+                                        onClick={handleEndRound}
+                                        disabled={!round.active}
+                                    >
+                                        End Round
+                                    </button>
+                                )}
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={handleStartNewRound}
+                                    disabled={!round.active}
+                                >
+                                    Start New Round
+                                </button>
+                                <button className="btn btn-danger" onClick={handleEndRoom}>
+                                    Leave Room
+                                </button>
+                            </div>
+                        </section>
+                    )}
+
+                    <section className="glass p-3">
+                        <h3 className="h6 brand-title mb-3">Actions</h3>
+                        <button className="btn btn-outline-light w-100" onClick={handleLeaveRoom}>
+                            Leave Room
+                        </button>
+                    </section>
+                </aside>
+            </div>
+        </main>
+    );
+}
+
+export default Results;
