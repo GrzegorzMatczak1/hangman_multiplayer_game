@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import stage0 from './assets/stage0.png';
+import stage1 from './assets/stage1.png';
+import stage2 from './assets/stage2.png';
+import stage3 from './assets/stage3.png';
+import stage4 from './assets/stage4.png';
+import stage5 from './assets/stage5.png';
+import stage6 from './assets/stage6.png';
+import stage7 from './assets/stage7.png';
+import stage8 from './assets/stage8.png';
+import stage9 from './assets/stage9.png';
+import stage10 from './assets/stage10.png';
 
 interface Player {
     userid: number;
@@ -43,9 +54,11 @@ function Round() {
     const [roundError, setRoundError] = useState('');
     const navigate = useNavigate();
     const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+    const image_sources = [stage10, stage9, stage8, stage7, stage6, stage5, stage4, stage3, stage2, stage1, stage0]
     const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
     const scheduleNextGuess = () => Date.now() + getRandomInt(5000, 15000);
     const areAllPlayersFinished = (allPlayers: Player[]) => allPlayers.length > 0 && allPlayers.every((p) => p.finished);
+    const [imageSource, SetImageSource] = useState("");
     const getWrongGuesses = (player: Player) => {
         if (!round) return [];
         const word = round.word.toLowerCase();
@@ -591,7 +604,9 @@ function Round() {
                     <div className="glass p-3 text-center">
                         <div className="brand-muted mb-2">Hangman board</div>
                         <div className="border border-secondary rounded p-3 bg-dark-subtle text-dark-emphasis">
-                            Hangman Image ({currentPlayer ? 10 - currentPlayer.lives : 0} wrong guesses)
+                            {
+                                <img src={image_sources[currentPlayer ? currentPlayer?.lives : 0]} alt={"Player has: " + currentPlayer?.lives + " lives left"}></img>
+                            }
                         </div>
                         <div className="small brand-muted mt-2">
                             Wrong guesses: {currentPlayer ? getWrongGuesses(currentPlayer).join(', ') || 'None' : 'None'}
